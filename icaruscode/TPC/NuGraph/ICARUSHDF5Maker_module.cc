@@ -171,7 +171,7 @@ private:
       : file{ makeOutputFileName(outputName, sr), H5F_ACC_TRUNC }
       , eventNtupleNu{
 	hep_hpc::hdf5::make_ntuple({file, "event_table", 1000},
-	hep_hpc::hdf5::make_column<int>("event_id", 3),
+      hep_hpc::hdf5::make_column<int>("event_id", 4),
         hep_hpc::hdf5::make_scalar_column<int>("is_cc"),
         hep_hpc::hdf5::make_scalar_column<int>("nu_pdg"),
         hep_hpc::hdf5::make_scalar_column<float>("nu_energy"),
@@ -180,7 +180,7 @@ private:
         }
       , spacePointNtuple{
         hep_hpc::hdf5::make_ntuple({file, "spacepoint_table", 1000},
-        hep_hpc::hdf5::make_column<int>("event_id", 3),
+        hep_hpc::hdf5::make_column<int>("event_id", 4),
         hep_hpc::hdf5::make_scalar_column<int>("spacepoint_id"),
         hep_hpc::hdf5::make_column<float>("position", 3),
         hep_hpc::hdf5::make_column<int>("hit_id", 3),
@@ -188,7 +188,7 @@ private:
         }
       , hitNtuple{
         hep_hpc::hdf5::make_ntuple({file, "hit_table", 1000},
-        hep_hpc::hdf5::make_column<int>("event_id", 3),
+        hep_hpc::hdf5::make_column<int>("event_id", 4),
         hep_hpc::hdf5::make_scalar_column<int>("hit_id"),
         hep_hpc::hdf5::make_scalar_column<float>("integral"),
         hep_hpc::hdf5::make_scalar_column<float>("rms"),
@@ -203,7 +203,7 @@ private:
         }
       , particleNtuple{
         hep_hpc::hdf5::make_ntuple({file, "particle_table", 1000},
-        hep_hpc::hdf5::make_column<int>("event_id", 3),
+        hep_hpc::hdf5::make_column<int>("event_id", 4),
         hep_hpc::hdf5::make_scalar_column<int>("g4_id"),
         hep_hpc::hdf5::make_scalar_column<int>("type"),
         hep_hpc::hdf5::make_scalar_column<int>("parent_id"),
@@ -216,7 +216,7 @@ private:
         }
       , energyDepNtuple{
         hep_hpc::hdf5::make_ntuple({file, "edep_table", 1000},
-        hep_hpc::hdf5::make_column<int>("event_id", 3),
+        hep_hpc::hdf5::make_column<int>("event_id", 4),
         hep_hpc::hdf5::make_scalar_column<int>("hit_id"),
         hep_hpc::hdf5::make_scalar_column<int>("g4_id"),
         hep_hpc::hdf5::make_scalar_column<float>("energy"),
@@ -226,7 +226,7 @@ private:
         }
       , opHitNtuple{
         hep_hpc::hdf5::make_ntuple({file, "ophit_table", 1000},
-        hep_hpc::hdf5::make_column<int>("event_id", 3),
+        hep_hpc::hdf5::make_column<int>("event_id", 4),
         hep_hpc::hdf5::make_scalar_column<int>("hit_id"),
         hep_hpc::hdf5::make_scalar_column<int>("hit_channel"),
         hep_hpc::hdf5::make_column<int>("wire_pos", 3),//3 views
@@ -239,7 +239,7 @@ private:
         }
       , opFlashNtuple{
         hep_hpc::hdf5::make_ntuple({file, "opflash_table", 1000},
-        hep_hpc::hdf5::make_column<int>("event_id", 3),
+        hep_hpc::hdf5::make_column<int>("event_id", 4),
         hep_hpc::hdf5::make_scalar_column<int>("flash_id"),
         hep_hpc::hdf5::make_column<int>("wire_pos", 3),//3 views
         hep_hpc::hdf5::make_scalar_column<float>("time"),
@@ -252,7 +252,7 @@ private:
         }
       , opFlashSumPENtuple{
         hep_hpc::hdf5::make_ntuple({file, "opflashsumpe_table", 1000},
-        hep_hpc::hdf5::make_column<int>("event_id", 3),
+        hep_hpc::hdf5::make_column<int>("event_id", 4),
         hep_hpc::hdf5::make_scalar_column<int>("sumpe_id"),
         hep_hpc::hdf5::make_scalar_column<int>("flash_id"),
         hep_hpc::hdf5::make_scalar_column<int>("pmt_channel"),
@@ -303,7 +303,7 @@ void ICARUSHDF5Maker::analyze(art::Event const& e) {
 
   // std::cout << "NEW EVENT: " << run <<"  "<< subrun << " "<< event<<std::endl;
 
-  std::array<int, 3> evtID { run, subrun, event };
+  std::array<int, 4> evtID { run, subrun, event, 1 };
   // Fill event table
   // Get MC truth
   auto truthHandle = e.getValidHandle<std::vector<simb::MCTruth>>(fTruthLabel);
