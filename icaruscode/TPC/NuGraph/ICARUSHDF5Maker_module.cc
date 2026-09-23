@@ -290,6 +290,8 @@ void ICARUSHDF5Maker::analyze(art::Event const& e) {
   int run = e.id().run();
   int subrun = e.id().subRun();
   int event = e.id().event();
+  struct timeval now;
+  gettimeofday(&now, NULL);
 
   // auto tpcgeo = art::ServiceHandle<geo::Geometry const>()->TPC();
   // std::cout << "tpc drift distance=" << tpcgeo.DriftDistance() << std::endl;
@@ -303,7 +305,7 @@ void ICARUSHDF5Maker::analyze(art::Event const& e) {
 
   // std::cout << "NEW EVENT: " << run <<"  "<< subrun << " "<< event<<std::endl;
 
-  std::array<int, 4> evtID { run, subrun, event, 1 };
+  std::array<int, 4> evtID { run, subrun, event, now.tv_usec };
   // Fill event table
   // Get MC truth
   auto truthHandle = e.getValidHandle<std::vector<simb::MCTruth>>(fTruthLabel);
