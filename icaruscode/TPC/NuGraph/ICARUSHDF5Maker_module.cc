@@ -154,21 +154,30 @@ private:
 			  hep_hpc::hdf5::Column<float, 1>   // pe
     > opFlashSumPENtuple; ///< Flash SumPE ntuple
 
-    static std::string makeOutputFileName(std::string const& outputName, art::SubRunID const& sr)
+    static struct timeval currentTime()
     {
       struct timeval now;
       gettimeofday(&now, NULL);
+      return now;
+    }
+
+    static std::string makeOutputFileName(std::string const& outputName,
+                                          art::SubRunID const& sr,
+                                          int timestamp)
+    {
       std::ostringstream fileName;
       fileName << outputName
 	       << "_r" << std::setfill('0') << std::setw(5) << sr.run()
 	       << "_s" << std::setfill('0') << std::setw(5) << sr.subRun()
-	       << "_ts" << std::setw(6) << now.tv_usec << ".h5";
+               << "_ts" << std::setw(6) << timestamp << ".h5";
       std::cout << fileName.str() << std::endl;
       return fileName.str();
     }
 
+    struct timeval now;
     HDFDataFile(std::string const& outputName, art::SubRunID const& sr)
-      : file{ makeOutputFileName(outputName, sr), H5F_ACC_TRUNC }
+      : now{ currentTime() }
+      , file{ makeOutputFileName(outputName, sr, now.tv_usec), H5F_ACC_TRUNC }
       , eventNtupleNu{
 	hep_hpc::hdf5::make_ntuple({file, "event_table", 1000},
       hep_hpc::hdf5::make_column<int>("event_id", 4),
@@ -290,8 +299,6 @@ void ICARUSHDF5Maker::analyze(art::Event const& e) {
   int run = e.id().run();
   int subrun = e.id().subRun();
   int event = e.id().event();
-  struct timeval now;
-  gettimeofday(&now, NULL);
 
   // auto tpcgeo = art::ServiceHandle<geo::Geometry const>()->TPC();
   // std::cout << "tpc drift distance=" << tpcgeo.DriftDistance() << std::endl;
@@ -305,7 +312,7 @@ void ICARUSHDF5Maker::analyze(art::Event const& e) {
 
   // std::cout << "NEW EVENT: " << run <<"  "<< subrun << " "<< event<<std::endl;
 
-  std::array<int, 4> evtID { run, subrun, event, now.tv_usec };
+  std::array<int, 4> evtID { run, subrun, event, fHDFData->now.tv_usec };
   // Fill event table
   // Get MC truth
   auto truthHandle = e.getValidHandle<std::vector<simb::MCTruth>>(fTruthLabel);
