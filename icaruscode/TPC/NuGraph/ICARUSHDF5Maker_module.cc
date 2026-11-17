@@ -70,6 +70,7 @@ private:
   std::string fOutputName;
 
   struct HDFDataFile {
+    struct timeval now;
     hep_hpc::hdf5::File file;  ///< output HDF5 file
 
     hep_hpc::hdf5::Ntuple<hep_hpc::hdf5::Column<int, 1>,    // event id (run, subrun, event)
@@ -174,10 +175,10 @@ private:
       return fileName.str();
     }
 
-    struct timeval now;
     HDFDataFile(std::string const& outputName, art::SubRunID const& sr)
       : now{ currentTime() }
-      , file{ makeOutputFileName(outputName, sr, now.tv_usec), H5F_ACC_TRUNC }
+      , file{ makeOutputFileName(outputName, sr,
+                                 static_cast<int>(now.tv_usec)), H5F_ACC_TRUNC }
       , eventNtupleNu{
 	hep_hpc::hdf5::make_ntuple({file, "event_table", 1000},
       hep_hpc::hdf5::make_column<int>("event_id", 4),
@@ -312,7 +313,8 @@ void ICARUSHDF5Maker::analyze(art::Event const& e) {
 
   // std::cout << "NEW EVENT: " << run <<"  "<< subrun << " "<< event<<std::endl;
 
-  std::array<int, 4> evtID { run, subrun, event, fHDFData->now.tv_usec };
+  std::array<int, 4> evtID { run, subrun, event,
+                              static_cast<int>(fHDFData->now.tv_usec) };
   // Fill event table
   // Get MC truth
   auto truthHandle = e.getValidHandle<std::vector<simb::MCTruth>>(fTruthLabel);
