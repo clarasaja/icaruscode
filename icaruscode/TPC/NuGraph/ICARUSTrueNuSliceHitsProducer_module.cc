@@ -34,6 +34,9 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 
+#include <random> // For random selection of candidate cosmic slices
+#include "lardataobj/RecoBase/PFParticleMetadata.h" // For Pandora IsClearCosmic 
+
 class ICARUSTrueNuSliceHitsProducer : public art::EDProducer {
 
 /**
@@ -65,6 +68,10 @@ private:
   art::InputTag const fSpsLabel;
   bool const doFlashAssn;
 
+  // Parameters for cosmic fallback selection
+  unsigned int const fMinNuHits;       // Minimum number of true neutrino hits required to accept a slice as neutrino
+  bool const fSelectCosmicIfNoNu;      // If true, fallback to a non clear cosmic slice when maxCnt < fMinNuHits
+
   // Required functions.
   void produce(art::Event& e) override;
 
@@ -76,7 +83,10 @@ ICARUSTrueNuSliceHitsProducer::ICARUSTrueNuSliceHitsProducer(fhicl::ParameterSet
   fBaryMatchLabel( p.get<art::InputTag>("BaryMatchLabel") ),
   fSliceLabel(p.get<art::InputTag>("SliceLabel")),
   fSpsLabel(p.get<art::InputTag>("SpsLabel")),
-  doFlashAssn(p.get<bool>("DoFlashAssn",false))
+  doFlashAssn(p.get<bool>("DoFlashAssn",false)),
+
+  fMinNuHits(p.get<unsigned int>("MinNuHits", 20)),
+  fSelectCosmicIfNoNu(p.get<bool>("SelectCosmicIfNoNu", true))
   // More initializers here.
 {
   // Call appropriate produces<>() functions here.
@@ -130,6 +140,7 @@ void ICARUSTrueNuSliceHitsProducer::produce(art::Event& e)
       maxCnt = slhcnt;
     }
   }
+  
   mf::LogTrace{ "ICARUSTrueNuSliceHitsProducer" } << "keys: slice=" << slkey;
 
   if (slkey>=0) {
