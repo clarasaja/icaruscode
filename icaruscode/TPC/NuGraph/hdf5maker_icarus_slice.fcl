@@ -18,15 +18,14 @@ services:
   @table::icarus_common_services
   @table::icarus_backtracking_services
   message:               @local::icarus_message_services_prod_debug
+  
   ParticleInventoryService: {
-        ParticleInventory: {
-        EveIdCalculator: "EmEveIdCalculator"
-        G4ModuleLabel: "largeant"
-	OverrideRealData: true
-     }
+    ParticleInventory: {
+      EveIdCalculator: "EmEveIdCalculator"
+      G4ModuleLabel: "largeant"
+      OverrideRealData: true
+    }
   }
-
-
 } # services
 
 source:
@@ -37,57 +36,52 @@ source:
 
 physics:
 {
-
-  analyzers:
+   analyzers:
   {
-    hdf5maker: {
+    hdf5makerE: {
       module_type:  "ICARUSHDF5Maker"
       TruthLabel:   "generator"
-      SPLabel: "nuslhits"
-      HitLabel: "nuslhits"
-      OpFlashLabel:"opflashCryoE"
-      OpHitLabel:"ophit"
-      UseMap: false
-      OutputName:   "NeutrinoML"
+      SPLabel:      "nuslhitsE"
+      HitLabel:     "nuslhitsE"
+      OpFlashLabel: "opflashCryoE"
+      OpHitLabel:   "ophit"
+      UseMap:       false
+      OutputName:   "NeutrinoML_CryoE"
+    }
+    hdf5makerW: {
+      module_type:  "ICARUSHDF5Maker"
+      TruthLabel:   "generator"
+      SPLabel:      "nuslhitsW"
+      HitLabel:     "nuslhitsW"
+      OpFlashLabel: "opflashCryoW"
+      OpHitLabel:   "ophit"
+      UseMap:       false
+      OutputName:   "NeutrinoML_CryoW"
     }
   }
-
- producers:
+  producers:
   {
-    #nuslhitsE: {
-    #  module_type: "ICARUSNuSliceHitsProducer"
-    #  BaryMatchLabel: "tpcpmtbarycentermatchCryoE"
-    #  SliceLabel:    "pandoraGausCryoE"
-    #  SpsLabel:      "cluster3DCryoE"
-    #}
-    #nuslhitsW: {
-    #  module_type: "ICARUSNuSliceHitsProducer"
-    #  BaryMatchLabel: "tpcpmtbarycentermatchCryoW"
-    #  SliceLabel:    "pandoraGausCryoW"
-    #  SpsLabel:      "cluster3DCryoW"
-    #}
-    #nuslhits: {
-    #  module_type:             "HitMerger"
-    #  HitProducerLabelVec:     ["nuslhitsE","nuslhitsW"]
-    #}
-    nuslhits: {
-      #module_type: "ICARUSNuSliceHitsProducer"
-      module_type: "ICARUSTrueNuSliceHitsProducer"
+    nuslhitsE: {
+      module_type:    "ICARUSTrueNuSliceHitsProducer"
       BaryMatchLabel: "tpcpmtbarycentermatchCryoE"
-      SliceLabel:    "pandoraGausCryoE"
-      SpsLabel:      "cluster3DCryoE"
-      DoFlashAssn: true
+      SliceLabel:     "pandoraGausCryoE"
+      SpsLabel:       "cluster3DCryoE"
+      DoFlashAssn:    true
     }
-    # sps: cluster3DCryoE
+    nuslhitsW: {
+      module_type:    "ICARUSTrueNuSliceHitsProducer"
+      BaryMatchLabel: "tpcpmtbarycentermatchCryoW"
+      SliceLabel:     "pandoraGausCryoW"
+      SpsLabel:       "cluster3DCryoW"
+      DoFlashAssn:    true
+    }
   }
+ 
+  reco:          [ nuslhitsE, nuslhitsW ]
+  ana:           [ hdf5makerE, hdf5makerW ]
 
- #reco: [nuslhitsE,nuslhitsW,nuslhits]
- reco: [nuslhits]
- ana:       [ hdf5maker ]
-
- trigger_paths:       [ reco ]
- end_paths:     [ ana ]
-
+  trigger_paths: [ reco ]
+  end_paths:     [ ana ]
 }
 
 services.BackTrackerService.BackTracker.G4ModuleLabel: "largeant"
