@@ -34,7 +34,6 @@
 #include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 
-#include <random> // For random selection of candidate cosmic slices
 #include "lardataobj/RecoBase/PFParticleMetadata.h" // For Pandora IsClearCosmic 
 
 class ICARUSTrueNuSliceHitsProducer : public art::EDProducer {
@@ -120,6 +119,7 @@ void ICARUSTrueNuSliceHitsProducer::produce(art::Event& e)
   art::FindManyP<recob::Hit> assocSliceHit(inputSlice, e, fSliceLabel);
   int slkey = -1;
   int maxCnt = 0;
+
   // find the slice with the largest number of hits contributed by neutrino interactions
   for (size_t sk=0; sk<inputSlice->size(); sk++) {
     int slhcnt = 0;
@@ -138,6 +138,43 @@ void ICARUSTrueNuSliceHitsProducer::produce(art::Event& e)
     if (slhcnt>maxCnt) {
       slkey = sk;
       maxCnt = slhcnt;
+    }
+  }
+
+  // If neutrino hit count is below threshold, reset slkey
+  if (maxCnt < static_cast<int>(fMinNuHits)) {
+    slkey = -1;
+  }
+
+  // Cosmic fallback: look directly for a non-clear-cosmic slice
+  if (fSelectCosmicIfNoNu && slkey < 0) {
+    
+    auto pfpHandle = e.getValidHandle<std::vector<recob::PFParticle>>(fSliceLabel);
+    art::FindManyP<recob::PFParticle> sliceToPfps(inputSlice, e, fSliceLabel);
+    art::FindManyP<larpandoraobj::PFParticleMetadata> pfpToMeta(pfpHandle, e, fSliceLabel);
+
+    for (size_t sk = 0; sk < inputSlice->size(); ++sk) {
+
+      bool isClearCosmic = false;
+
+      // Check if Pandora tagged any particle in this slice as clear cosmic
+      for (auto const& pfp : sliceToPfps.at(sk)) {
+        for (auto const& meta : pfpToMeta.at(pfp.key())) {
+          if (meta->GetPropertiesMap().count("IsClearCosmic")) {
+            isClearCosmic = true;
+            break;
+          }
+        }
+        if (isClearCosmic) break;
+      }
+
+      // If it is a clear cosmic, skip it!
+      if (isClearCosmic) continue;
+
+      // Found our candidate non clear cosmic slice:
+      slkey = sk;
+      mf::LogInfo("ICARUSTrueNuSliceHitsProducer") << "Selected cosmic slice sk=" << slkey;
+      break;
     }
   }
   
